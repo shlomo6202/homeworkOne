@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>get movie by query</title>
+    <style>
+
+        .movie {
+            border: 1px solid white;
+            background-color: yellow;
+            height: 300px;
+            width: 370px;
+            text-align: center;
+            float: left;
+        }
+
+            .movie > img {
+                height: 60%;
+            }
+
+        .info {
+            border: 1px solid white;
+            background-color: beige;
+            height: 300px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+            crossorigin="anonymous">
+    </script>
+
+    <script src="../Scripts/ajaxCalls.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $("#getMovie").click(getMovie);
+        });
+
+        function getMovie() {
+            let name = $("#movieName").val();
+            let key = "161d130b6575207c8c50e85fd94ac56d";
+
+            let apiCall = `https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${name}`;
+
+            ajaxCall("GET", apiCall, "", getMovieSuccessCB, getMovieErrorCB);
+        }
+
+        function getMovieSuccessCB(movies) {
+            movies = movies.results;
+            let path = "https://image.tmdb.org/t/p/original";
+            let str = "";
+            for (var i = 0; i < movies.length; i++) {
+                let src = path + movies[i].poster_path;
+                let title = movies[i].title;
+                str += "<div class = 'movie'>";
+                str += `<h3> ${title} </h3>`;
+                str += `<img src = '${src}' />`;
+                str += `<br><button id='btnShow' onclick='ShowDetailsByID(${movies[i].id})'>Show</button>`;
+                str += "</div>";
+            }
+            $("#ph").html(str);
+        }
+
+        function getMovieErrorCB(err) {
+            console.log(err);
+        }
+
+        function ShowDetailsByID(movieID) {
+            let key = "161d130b6575207c8c50e85fd94ac56d";
+
+            let apiCall = `https://api.themoviedb.org/3/movie/${movieID}?api_key=${key}`;
+
+            ajaxCall("GET", apiCall, "", getMovieIDSuccessCB, getMovieIDErrorCB);
+        }
+
+        function getMovieIDSuccessCB(movie) {
+
+            console.log(movie);
+            let path = "https://image.tmdb.org/t/p/original";
+            let movieData = {
+                Id: movie.id,
+                Name: movie.title,
+                Description: movie.overview,
+                Genre: movie.genres,
+                ReleaseDate: movie.release_date,
+                Img: path + movie.poster_path,
+                Score: movie.vote_average
+            };
+            let str = "";
+            let src = path + movie.poster_path;
+            let title = movie.title;
+            str += "<div class = 'movie'>";
+            str += `<h3> ${title} </h3>`;
+            str += `<img src = '${src}' />`;
+            str += `<br><button  id='btnAdd' onclick='addMovie(${movieData})'>Add</button>`;
+            str += "</div>";
+            str += '<div class = "info">';
+            str += `<br><h2>${movie.overview}</h2>`;
+            str += "<p>Genre: ";
+            for (var i = 0; i < movie.genres.length; i++) {
+                str += movie.genres[i].name + ' ';
+            }
+            str += `<br>Release Date:${movie.release_date}`;
+            str += `<br>Score: ${movie.vote_average}`;
+            str += "</div>";
+            $("#ph").html(str);
+        }
+        function getMovieIDErrorCB(err) {
+            console.log(err);
+        }
+
+        function addMovie(movie) {
+
+            let api = "../api/Movies";
+            ajaxCall("POST", api, JSON.stringify(movie), addMovieSCB, addMovieECB);
+        }
+        function addMovieSCB(status) {
+            console.log(status)
+        }
+        function addMovieECB(status) {
+            console.log(status)
+        }
+    </script>
+</head>
+<body>
+    <input type="text" id="movieName" />
+    <button id="getMovie">Get Movie</button>
+    <div id="ph"> </div>
+</body>
+</html>
